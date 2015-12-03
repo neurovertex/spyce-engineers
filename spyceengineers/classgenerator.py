@@ -15,7 +15,10 @@ def generateClassFiles(types, todir="."):
     todir += "/deftypes"
     if not exists(todir):
         mkdir(todir)
-    for c,r in types.values():
+    for key in types.keys():
+        if key == "locale":
+            continue
+        c,r = types[key]        
         defkeys = set()
         defoptkeys = {}
         for i in r:
@@ -41,8 +44,6 @@ def generateClassFiles(types, todir="."):
             print(f.name)
             typeIds = set(t.find('Id').find('TypeId').text for t in r)
             f.write("""import spyceengineers.deftypes as deftypes
-            
-__all__ = %s
 
 class %s (deftypes.Definition):
     __typevars__ = ['%s']
@@ -57,10 +58,15 @@ class %s (deftypes.Definition):
 
     def __init__(self, gamedata, d):
         super().__init__(gamedata, d)
-""" % (breakline("['%s', '%s']"%(c, "', '".join(t for t in typeIds)), MAX_LINE_LEN, ','),c, breakline("', '".join(var[0].lower() + var[1:] for var in defkeys), MAX_LINE_LEN, ',')))
+""" % (c, breakline("', '".join(var[0].lower() + var[1:] for var in defkeys), MAX_LINE_LEN, ',')))
             for var in defkeys:
                 f.write("        self.%s = d['%s']\n"% (var[0].lower() + var[1:], var))
             for t in typeIds:
+                if t == c:
+                    if len(defoptkeys[t]) > 0:
+                        raise RuntimeError("Type Class named like base class with specific type vars : %s"%c)
+                    else:
+                        continue
                 f.write("""
                     
 class %s (%s):
@@ -74,10 +80,13 @@ class %s (%s):
 """)
                 for var in defoptkeys[t]:
                     f.write("        self.%s = d['%s']\n"% (var[0].lower() + var[1:], var))
-            f.write(breakline("\n__all__ = ['%s', '%s']\n" % (c, "', '".join(t for t in typeIds)), MAX_LINE_LEN, ','))
+            f.write(breakline("\n__all__ = ['%s']\n" % ("', '".join([c] + [t for t in typeIds if t != c])), MAX_LINE_LEN, ','))
 
-def loadFromDataDir(d):
-    datafiles = {"items": ("PhysicalItem", "Item"), "blocks": ("CubeBlock", "Block")}
-    return {k:(v[1], xml.parse("%s/%ss.sbc"%(d,v[0])).getroot()[0]) for k,v in datafiles.items()}
-        
+def loadFromDataDir(d, locale=None):
+    datafiles = {"items": ("PhysicalItem", "Item"), "blocks": ("CubeBlock", "Block"), "components":("Component", "Component")}
+    data = {k:(v[1], xml.parse("%s/%ss.sbc"%(d,v[0])).getroot()[0]) for k,v in datafiles.items()}
+    data['locale'] = {'default': xml.parse("%s/Localization/MyTexts.resx"%d).getroot()}
+    if locale != None:
+        data['locale']['requested'] = xml.parse("%s/Localization/MyTexts.%s.resx"% (d,locale)).getroot()
+    return data
         

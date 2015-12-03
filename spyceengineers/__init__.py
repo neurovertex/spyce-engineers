@@ -1,6 +1,7 @@
 from spyceengineers.deftypes import Definition
 from spyceengineers.deftypes.item import Item
 from spyceengineers.deftypes.block import Block
+from spyceengineers.deftypes.component import Component
 
 __all__ = ['GameData', 'deftypes']
 
@@ -9,10 +10,14 @@ class GameData:
         pass
     
     def loadFromData(self, data):
-        self.items = GameData.PhysicalItemDatabase(self.loadXML(Item, data['items'][1]))
-        self.blocks = GameData.CubeBlockDatabase(self.loadXML(Block, data['blocks'][1]))
+        self.locale = {i.attrib['name']:i[0].text for i in data['locale']['default'] if i.tag == 'data'}
+        if 'requested' in data['locale']:
+            self.locale.update({i.attrib['name']:i[0].text for i in data['locale']['requested'] if i.tag == 'data'})
+        self.items = GameData.PhysicalItemDatabase(self.loadDefinitions(Item, data['items'][1]))
+        self.blocks = GameData.CubeBlockDatabase(self.loadDefinitions(Block, data['blocks'][1]))
+        self.components = GameData.ComponentDatabase(self.loadDefinitions(Component, data['components'][1]))
         
-    def loadXML(self, T, root):
+    def loadDefinitions(self, T, root):
         listtags = GameData.findListTags(root)
         data = []
         try:
@@ -23,6 +28,9 @@ class GameData:
             self._last_failed = e
             raise RuntimeError("Error while loading")
         return data
+    
+    def loadLocalization(self, root):
+        pass
     
     def todict(el, listtags):
         if el.tag in listtags:
@@ -73,6 +81,8 @@ class GameData:
     class CubeBlockDatabase(DictOverlay):
         def __init__(self, defs):
             data = {ty:{v.subtype:v for v in defs if v.type == ty} for ty in set(t.type for t in defs)}
+            self.classes = {ty:list(data[ty].values())[0].__class__ for ty in set(t.type for t in defs)}
+            self.baseclass = list(self.classes.values())[0].__base__
             sizes = set(k.cubeSize for vals in data.values() for k in vals.values())
             overlay = {k:{ty:{sty:v for sty,v in stys.items() if v.cubeSize == k} for ty,stys in data.items()} for k in sizes}
             for si,tys in overlay.items():
@@ -86,3 +96,11 @@ class GameData:
     class PhysicalItemDatabase(dict):
         def __init__(self, defs):
             super().__init__({ty:{v.subtype:v for v in defs if v.type == ty} for ty in set(t.type for t in defs)})
+            self.classes = {ty:list(self[ty].values())[0].__class__ for ty in set(t.type for t in defs)}
+            self.baseclass = list(self.classes.values())[0].__base__
+    
+    class ComponentDatabase(dict):
+        def __init__(self, defs):
+            super().__init__({v.subtype:v for v in defs})
+            self.baseclass = defs[0].__class__
+            self.classes = {self.baseclass.__name__:self.baseclass}

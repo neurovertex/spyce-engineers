@@ -1,10 +1,7 @@
 import spyceengineers.deftypes as deftypes
-            
-__all__ = ['Item', 'Ingot', 'GasContainerObject', 'EntityBase', 'OxygenContainerObject', 'PhysicalGunObject',
- 'Ore', 'TreeObject']
 
 class Item (deftypes.Definition):
-    __typevars__ = ['size', 'id', 'volume', 'displayName', 'mass']
+    __typevars__ = ['mass', 'displayName', 'id', 'size', 'volume']
     def __new__(cls, gamedata, d):
         if d['Id']['TypeId'] !=  __class__.__name__:
             try:
@@ -16,43 +13,28 @@ class Item (deftypes.Definition):
 
     def __init__(self, gamedata, d):
         super().__init__(gamedata, d)
-        self.size = d['Size']
-        self.id = d['Id']
-        self.volume = d['Volume']
-        self.displayName = d['DisplayName']
         self.mass = d['Mass']
+        self.displayName = d['DisplayName']
+        self.id = d['Id']
+        self.size = d['Size']
+        self.volume = d['Volume']
 
                     
 class Ingot (Item):
-    __typevars__ = ['physicalMaterial', 'icon', 'model']
+    __typevars__ = ['model', 'icon', 'physicalMaterial']
 
     def __new__(cls, gamedata, d):
         return super().__new__(cls, gamedata, d)
 
     def __init__(self, gamedata, d):
         super().__init__(gamedata, d)
-        self.physicalMaterial = d['PhysicalMaterial']
-        self.icon = d['Icon']
         self.model = d['Model']
-
-                    
-class GasContainerObject (Item):
-    __typevars__ = ['physicalMaterial', 'icon', 'model', 'storedGasId', 'capacity']
-
-    def __new__(cls, gamedata, d):
-        return super().__new__(cls, gamedata, d)
-
-    def __init__(self, gamedata, d):
-        super().__init__(gamedata, d)
-        self.physicalMaterial = d['PhysicalMaterial']
         self.icon = d['Icon']
-        self.model = d['Model']
-        self.storedGasId = d['StoredGasId']
-        self.capacity = d['Capacity']
+        self.physicalMaterial = d['PhysicalMaterial']
 
                     
 class EntityBase (Item):
-    __typevars__ = ['public', 'icon', 'model', 'canSpawnFromScreen']
+    __typevars__ = ['public', 'canSpawnFromScreen', 'model', 'icon']
 
     def __new__(cls, gamedata, d):
         return super().__new__(cls, gamedata, d)
@@ -60,23 +42,23 @@ class EntityBase (Item):
     def __init__(self, gamedata, d):
         super().__init__(gamedata, d)
         self.public = d['Public']
-        self.icon = d['Icon']
-        self.model = d['Model']
         self.canSpawnFromScreen = d['CanSpawnFromScreen']
+        self.model = d['Model']
+        self.icon = d['Icon']
 
                     
-class OxygenContainerObject (Item):
-    __typevars__ = ['physicalMaterial', 'icon', 'model', 'storedGasId', 'capacity']
+class GasContainerObject (Item):
+    __typevars__ = ['model', 'storedGasId', 'icon', 'physicalMaterial', 'capacity']
 
     def __new__(cls, gamedata, d):
         return super().__new__(cls, gamedata, d)
 
     def __init__(self, gamedata, d):
         super().__init__(gamedata, d)
-        self.physicalMaterial = d['PhysicalMaterial']
-        self.icon = d['Icon']
         self.model = d['Model']
         self.storedGasId = d['StoredGasId']
+        self.icon = d['Icon']
+        self.physicalMaterial = d['PhysicalMaterial']
         self.capacity = d['Capacity']
 
                     
@@ -90,31 +72,46 @@ class PhysicalGunObject (Item):
         super().__init__(gamedata, d)
 
                     
-class Ore (Item):
-    __typevars__ = ['physicalMaterial', 'icon', 'model']
+class OxygenContainerObject (Item):
+    __typevars__ = ['model', 'storedGasId', 'icon', 'physicalMaterial', 'capacity']
 
     def __new__(cls, gamedata, d):
         return super().__new__(cls, gamedata, d)
 
     def __init__(self, gamedata, d):
         super().__init__(gamedata, d)
-        self.physicalMaterial = d['PhysicalMaterial']
-        self.icon = d['Icon']
         self.model = d['Model']
+        self.storedGasId = d['StoredGasId']
+        self.icon = d['Icon']
+        self.physicalMaterial = d['PhysicalMaterial']
+        self.capacity = d['Capacity']
 
                     
 class TreeObject (Item):
-    __typevars__ = ['physicalMaterial', 'canSpawnFromScreen', 'icon', 'model']
+    __typevars__ = ['canSpawnFromScreen', 'model', 'icon', 'physicalMaterial']
 
     def __new__(cls, gamedata, d):
         return super().__new__(cls, gamedata, d)
 
     def __init__(self, gamedata, d):
         super().__init__(gamedata, d)
-        self.physicalMaterial = d['PhysicalMaterial']
         self.canSpawnFromScreen = d['CanSpawnFromScreen']
-        self.icon = d['Icon']
         self.model = d['Model']
+        self.icon = d['Icon']
+        self.physicalMaterial = d['PhysicalMaterial']
 
-__all__ = ['Item', 'Ingot', 'GasContainerObject', 'EntityBase', 'OxygenContainerObject',
- 'PhysicalGunObject', 'Ore', 'TreeObject']
+                    
+class Ore (Item):
+    __typevars__ = ['model', 'icon', 'physicalMaterial']
+
+    def __new__(cls, gamedata, d):
+        return super().__new__(cls, gamedata, d)
+
+    def __init__(self, gamedata, d):
+        super().__init__(gamedata, d)
+        self.model = d['Model']
+        self.icon = d['Icon']
+        self.physicalMaterial = d['PhysicalMaterial']
+
+__all__ = ['Item', 'Ingot', 'EntityBase', 'GasContainerObject', 'PhysicalGunObject',
+ 'OxygenContainerObject', 'TreeObject', 'Ore']
